@@ -17,10 +17,10 @@ def m3u_prep(m3u_uri):
     m3u_file.close()
     return(r.text)
 
-def xml_prep(userName, passWord):
+def xml_prep(epg_uri):
     """Download xml and write to file."""
     # NOT FUNCTIONAL YET. I mean, it'll work, but we're not using it. Yet.
-    r = requests.get('http://jarvishosting.ddns.net:826/xmltv.php?username={0}&password={1}'.format(userName, passWord))
+    r = requests.get('{0}'.format(epg_uri[0]))
     print(r.status_code)
     print(r.headers)
     print(r.encoding)
