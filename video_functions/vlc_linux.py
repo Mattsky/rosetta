@@ -209,9 +209,9 @@ class Player(QtWidgets.QMainWindow):
         m3u_action.triggered.connect(self.get_m3u)
         close_action.triggered.connect(sys.exit)
 
-        # Add action(s) to view menu
-        view_menu = self.menu_bar.addMenu("View")
-        playlist_view_action = QtWidgets.QAction("View Playlist", self)
+        # Add action(s) to view menu - TODO
+        #view_menu = self.menu_bar.addMenu("View")
+        #playlist_view_action = QtWidgets.QAction("View Playlist", self)
 
         #playlist_view_action.triggered.connect(self.view_playlist)
 
