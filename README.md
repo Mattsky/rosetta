@@ -41,6 +41,8 @@ You can either load an M3U file from disk, or paste the URI given to you and it'
 
 Want to contribute? Great! Hack away and submit a PR.
 
+This is VERY HEAVILY WIP. Expect stuff to break. Expect weird error messages. You know the drill.
+
 ### Todos
 
  - Write tests
