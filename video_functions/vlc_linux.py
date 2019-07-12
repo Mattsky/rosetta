@@ -71,9 +71,6 @@ class Player(QtWidgets.QMainWindow):
         self.setWindowTitle("{0} - {1}".format(self.appInfo, currentChannel))
         self.mediaplayer.play()
 
-    def setPlaylistviewUnchecked(self, event):
-        self.playlist_view_action.setChecked(False)
-
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             if self.windowState() == QtGui.Qt.WindowNoState:
@@ -119,6 +116,8 @@ class Player(QtWidgets.QMainWindow):
         # Create DockWidget with Tabs for categories
         self.dock = QtWidgets.QDockWidget("Categories", self)
         self.dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        # Disable close button (X)
+        self.dock.setFeatures(QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
         self.m3udict = m3udict
         self.playlists = QtWidgets.QTabWidget(self.dock)
 
@@ -164,7 +163,6 @@ class Player(QtWidgets.QMainWindow):
         
         # In this widget, the video will be drawn
         self.videoframe = QtWidgets.QFrame()
-        #self.videoframe.setLineWidth(0)
         self.videoframe.setFrameShape(QtWidgets.QFrame.NoFrame)
 
         self.palette = self.videoframe.palette()
@@ -281,9 +279,6 @@ class Player(QtWidgets.QMainWindow):
 
         # If the menu's already been generated:
         if self.dock :
-
-            #if playlist_view_action.setCheckable(False) :
-            #    playlist_view_action.setCheckable(True)
 
             if self.dock.isHidden():
                 self.dock.show()
