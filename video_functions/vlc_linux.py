@@ -7,12 +7,13 @@ from net_functions.net_basics import m3u_prep, xml_prep
 from PySide2 import QtWidgets, QtGui, QtCore
 import vlc
 
+
 class Player(QtWidgets.QMainWindow):
 
     def __init__(self, master=None):
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
-        self.appInfo = "Rosetta v0.2.0"     
+        self.appInfo = "Rosetta v0.2.1"     
         self.setWindowTitle(self.appInfo)
         self.m3uUri = None
         self.m3udata = None
@@ -69,6 +70,9 @@ class Player(QtWidgets.QMainWindow):
         # Update the main window title
         self.setWindowTitle("{0} - {1}".format(self.appInfo, currentChannel))
         self.mediaplayer.play()
+
+    def setPlaylistviewUnchecked(self, event):
+        self.playlist_view_action.setChecked(False)
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -145,6 +149,10 @@ class Player(QtWidgets.QMainWindow):
             # Pick up tab change in playlists widget
             self.playlists.currentChanged.connect(self.onTabChange)
             
+
+            self.playlist_view_action.setCheckable(True)
+            self.playlist_view_action.setChecked(True)
+            
             # Is this interfering with the video player maximise on doubleclick?
             self.playlists.currentWidget().itemDoubleClicked.connect(self.set_video_stream)
 
@@ -194,15 +202,15 @@ class Player(QtWidgets.QMainWindow):
         self.menu_bar = self.menuBar()
 
         # Build menus
-        file_menu = self.menu_bar.addMenu("File")
+        self.file_menu = self.menu_bar.addMenu("File")
 
         # Add actions to file menu
         open_action = QtWidgets.QAction("Open M3U File", self)
         m3u_action = QtWidgets.QAction("Open M3U URI", self)
         close_action = QtWidgets.QAction("Close App", self)
-        file_menu.addAction(open_action)
-        file_menu.addAction(m3u_action)
-        file_menu.addAction(close_action)
+        self.file_menu.addAction(open_action)
+        self.file_menu.addAction(m3u_action)
+        self.file_menu.addAction(close_action)
 
         open_action.triggered.connect(self.open_file)
         # Activate prefs stuff when the method's ready
@@ -210,23 +218,20 @@ class Player(QtWidgets.QMainWindow):
         close_action.triggered.connect(sys.exit)
 
         # Add action(s) to view menu - TODO
-        #view_menu = self.menu_bar.addMenu("View")
-        #playlist_view_action = QtWidgets.QAction("View Playlist", self)
+        self.view_menu = self.menu_bar.addMenu("View")
 
-        #playlist_view_action.triggered.connect(self.view_playlist)
+        self.playlist_view_action = QtWidgets.QAction("View Playlist", self)
+
+        self.view_menu.addAction(self.playlist_view_action)
+
+        self.playlist_view_action.triggered.connect(self.view_playlist)
 
         self.timer = QtCore.QTimer(self)
         self.timer.setInterval(100)
         self.timer.timeout.connect(self.update_ui)
 
     def play(self):
-        """Toggle play/pause status
-        """
-        self.playbutton.setText("Play")
-
-        #if self.mediaplayer.play() == -1:
-            #self.open_file()
-            #return
+        """Play selected stream"""
 
         self.mediaplayer.play()
         self.timer.start()
@@ -249,13 +254,11 @@ class Player(QtWidgets.QMainWindow):
             self.m3uProgress.setWindowTitle("Processing M3U data, please wait!")
             
             self.m3udata = m3u_prep(m3u_uri)
-            #self.m3uProgress.show()
-            #self.m3uProgress.setValue(33)
+
             self.m3uParser.m3u_chunker(self.m3udata)
-            #self.m3uProgress.setValue(66)
+
             self.create_playlist_ui(self.m3uParser.channel_list)
-            #self.m3uProgress.setValue(100)
-            #self.m3uProgress.hide()
+
      
 
     def open_file(self):
@@ -267,17 +270,27 @@ class Player(QtWidgets.QMainWindow):
             return
 
         # getOpenFileName returns a tuple, so use only the actual file name
-        #m3udata = self.instance.media_new(filename[0])
         with open(filename[0], 'r') as m3udata_file:
             self.m3udata = m3udata_file.read()
             
         self.m3uParser.m3u_chunker(self.m3udata)
-        playlist_progress = QtWidgets.QProgressDialog("Generating Playlist...", "Cancel", 0, 100, self)
-        playlist_progress.setWindowModality(QtCore.Qt.WindowModal)
 
         self.create_playlist_ui(self.m3uParser.channel_list)
 
-        playlist_progress.setValue(100)
+    def view_playlist(self):
+
+        # If the menu's already been generated:
+        if self.dock :
+
+            #if playlist_view_action.setCheckable(False) :
+            #    playlist_view_action.setCheckable(True)
+
+            if self.dock.isHidden():
+                self.dock.show()
+                self.playlist_view_action.setChecked(True)
+            else:
+                self.dock.hide()
+                self.playlist_view_action.setChecked(False)
 
 
     def set_volume(self, volume):

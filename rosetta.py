@@ -9,9 +9,6 @@ from file_functions.parsers import M3U_Parser
 from PySide2 import QtWidgets, QtGui, QtCore
 import vlc
 
-userName = os.environ['ROSETTA_USER']
-passWord = os.environ['ROSETTA_PASS']
-
 def main():
     #print("DEBUG: M3U download")
     #m3u_data = m3u_prep(userName, passWord)
