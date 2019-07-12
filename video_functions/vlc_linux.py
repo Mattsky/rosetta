@@ -7,8 +7,14 @@ from net_functions.net_basics import m3u_prep, xml_prep
 from PySide2 import QtWidgets, QtGui, QtCore
 import vlc
 
+class PlayerNG(QtWidgets.QMainWindow):
 
-class Player(QtWidgets.QMainWindow):
+    def closeEvent(self, event):
+        self.mediaplayer.stop()
+
+
+#class Player(QtWidgets.QMainWindow):
+class Player(PlayerNG):
 
     def __init__(self, master=None):
         self.syscheck()
