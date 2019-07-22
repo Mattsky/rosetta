@@ -19,7 +19,7 @@ class Player(PlayerNG):
     def __init__(self, master=None):
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
-        self.appInfo = "Rosetta v0.2.1"     
+        self.appInfo = "Rosetta v0.3.0"     
         self.setWindowTitle(self.appInfo)
         self.m3uUri = None
         self.m3udata = None
@@ -80,7 +80,9 @@ class Player(PlayerNG):
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             if self.windowState() == QtGui.Qt.WindowNoState:
+                print(self.widget.styleSheet)
                 # There has to be a better way to just fullscreen the video player. >:(
+                self.widget.setStyleSheet("background-color:black")
                 self.dock.hide()
                 self.volumeslider.hide()
                 self.playbutton.hide()
@@ -89,6 +91,7 @@ class Player(PlayerNG):
                 self.videoframe.showFullScreen()
                 self.setWindowState(QtGui.Qt.WindowFullScreen)
             else:
+                self.widget.setStyleSheet("background-color:None")
                 self.dock.show()
                 self.volumeslider.show()
                 self.playbutton.show()
@@ -174,7 +177,7 @@ class Player(PlayerNG):
         self.palette = self.videoframe.palette()
         self.palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 0))
         self.videoframe.setPalette(self.palette)
-        self.videoframe.setAutoFillBackground(True)
+        self.videoframe.setAutoFillBackground(False)
 
         # Set up play button
         self.hbuttonbox = QtWidgets.QHBoxLayout()

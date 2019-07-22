@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='Rosetta',
-      version='0.2.1',
+      version='0.3.0',
       description='Prototype video player thing',
       author='Matt N',
       author_email='matt.northsky@gmail.com',
