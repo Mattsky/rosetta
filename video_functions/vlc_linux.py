@@ -80,7 +80,6 @@ class Player(PlayerNG):
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             if self.windowState() == QtGui.Qt.WindowNoState:
-                print(self.widget.styleSheet)
                 # There has to be a better way to just fullscreen the video player. >:(
                 self.widget.setStyleSheet("background-color:black")
                 self.dock.hide()
