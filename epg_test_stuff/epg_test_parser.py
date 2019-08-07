@@ -39,8 +39,11 @@ class EPG_Parser():
                 pass
             
             if channel_display_name not in self.channel_list:
-                self.channel_list[channel_display_name] = {}
-                self.channel_list[channel_display_name]['channel_id'] = channel_id
+                # Formatted as:
+                # 'BET HER | VIP': {'channel_id': 'BET Her US'}
+                self.channel_list[channel_id] = {}
+                self.channel_list[channel_id]['channel_display_name'] = channel_display_name
+                self.channel_list[channel_id]['programme_list'] = {}
 
 
     def epg_programme_chunker(self):
@@ -55,21 +58,46 @@ class EPG_Parser():
             #desc
             #programme
             print(p)
-            #for elem in p.iter():
-            #    print(elem.tag)
-            #print(p.tag)
+            # <Element 'programme' at 0x7f554c6b8688>
             print(p.attrib)
+            # {'start': '20190729210000 -0400', 'stop': '20190729220000 -0400', 'channel': 'TeenNick US'}
+            print(p.get('start').strip('-0400'))
+            # 20190728220000
+            print(p.get('stop').strip('-0400'))
+            # 20190729220000
             print(p.find('.//title').text)
+            # Teen Wolf
             print(p.find('.//desc').text)
+            # A young outsider wanders into the woods in search of dead body and encounters a beast. After fighting for his life and escaping a deep bite, Scott's wound changes his life forever(n)
             print(p.get('channel'))
+            # TeenNick US
             channel_id = p.get('channel')
-            start_time = p.get('start').strip(' -0400')
+            
 
-            if channel_id not in self.programme_dict:
-                self.programme_dict['channel'] = channel_id
+            #if channel_id not in self.programme_dict:
+                # 'TeenNick US': 'TeenNick US'
+                #self.programme_dict[channel_id] = channel_id
 
+            start_time = int(p.get('start').strip('-0400').strip(' '))
+            print(type(start_time))
+
+            if channel_id not in self.channel_list:
+                self.channel_list[channel_id] = channel_id
+            
             #if start_time not in self.programme_dict[channel_id] list of keys:
             #    self.programme_dict['channel'] = channel_id
+
+            # Proposed solution:
+            # self.programme_dict[channel_id][start_time]['title'] = p.find('.//title').text
+            # self.programme_dict[channel_id][start_time]['desc'] = p.find('.//desc').text
+            # Integrated with existing channel list?
+            # self.channel_list[channel_id][start_time] = start_time
+            # if start_time not in self.channel_list[channel_id][start_time] list of keys:
+            if start_time not in self.channel_list[channel_id]['programme_list'] :
+                self.channel_list[channel_id]['programme_list'][start_time] = {}
+
+            self.channel_list[channel_id]['programme_list'][start_time]['title'] = p.find('.//title').text
+            self.channel_list[channel_id]['programme_list'][start_time]['desc'] = p.find('.//desc').text
             
             #self.programme_dict[channel_id][]
             #self.programme_dict[channel_id][] = p.get('start')
