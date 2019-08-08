@@ -2,6 +2,8 @@ import os
 import sys
 import re
 from xml.etree import ElementTree as ET
+from PySide2 import QtWidgets, QtGui, QtCore
+from collections import OrderedDict
 
 class EPG_Parser():
     """Class to hold EPG XML info in memory."""
@@ -44,7 +46,10 @@ class EPG_Parser():
                 self.channel_list[channel_id] = {}
                 self.channel_list[channel_id]['channel_display_name'] = channel_display_name
                 self.channel_list[channel_id]['programme_list'] = {}
-
+                try:
+                    self.channel_list[channel_id]['logo'] = p.find('.//icon').get('src')
+                except:
+                    self.channel_list[channel_id]['logo'] = "None"
 
     def epg_programme_chunker(self):
 
@@ -98,6 +103,14 @@ class EPG_Parser():
 
             self.channel_list[channel_id]['programme_list'][start_time]['title'] = p.find('.//title').text
             self.channel_list[channel_id]['programme_list'][start_time]['desc'] = p.find('.//desc').text
+
+            # Sort it by times
+            # THIS WORKS FOR ONE CHANNEL
+            # testparser.channel_list['wapatv.us']['programme_list'] = OrderedDict(sorted(testparser.channel_list['wapatv.us']['programme_list'].items()))
+            self.channel_list[channel_id]['programme_list'] = OrderedDict(sorted(self.channel_list[channel_id]['programme_list'].items()))
             
-            #self.programme_dict[channel_id][]
-            #self.programme_dict[channel_id][] = p.get('start')
+            
+            # print(sorted(testparser.channel_list['wapatv.us']['programme_list'].items()))
+
+            #for x in testparser.channel_list['wapatv.us']['programme_list']:
+            #    print("start time: {0} - info:{1}".format(x, testparser.channel_list['wapatv.us']['programme_list'][x]))
