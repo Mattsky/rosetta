@@ -5,14 +5,16 @@ from xml.etree import ElementTree as ET
 from PySide2 import QtWidgets, QtGui, QtCore
 from collections import OrderedDict
 
-class EPG_Parser():
+class EPG_Parser(QtWidgets.QMainWindow):
     """Class to hold EPG XML info in memory."""
 
-    def __init__(self):
+    def __init__(self, master=None):
         self.channel_list = {}
         self.programme_dict = {}
+        QtWidgets.QMainWindow.__init__(self, master)
         self.tree = ET.parse('xmltv.xml')
         self.root = self.tree.getroot()
+        self.dock = None
 
     def epg_channel_chunker(self):
         #tree = ET.parse(xmldata)
@@ -53,6 +55,7 @@ class EPG_Parser():
 
     def epg_programme_chunker(self):
 
+        # Generate programme info lists
         for p in self.root.findall('.//programme'):
             #<programme start="20190729043000 -0400" stop="20190729044500 -0400" channel="cartoonnetwork.us" >
             # <title>Lazor Wulf</title>
@@ -114,3 +117,69 @@ class EPG_Parser():
 
             #for x in testparser.channel_list['wapatv.us']['programme_list']:
             #    print("start time: {0} - info:{1}".format(x, testparser.channel_list['wapatv.us']['programme_list'][x]))
+
+        ### GENERATE GUI HERE
+    def create_playlist_ui(self):
+
+        self.listWidgets = {}
+
+        if self.dock != None:
+            self.dock.deleteLater()
+        
+        # Create DockWidget with Tabs for categories
+        self.dock = QtWidgets.QDockWidget("Categories", self)
+        self.dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
+        # Disable close button (X)
+        self.dock.setFeatures(QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
+        self.playlists = QtWidgets.QTabWidget(self.dock)
+
+        # Progress indentation ends here
+
+        # Create ListWidgets here based on keys from m3u data
+
+        if self.channel_list != None :
+            for key in self.channel_list.keys():
+                # self.channel_list[channel_id]['programme_list'][start_time]['title']
+                # self.channel_list[key] = channel_id
+                self.listWidgets[key] = QtWidgets.QListWidget()
+                for item in self.channel_list[key]['programme_list'].items():
+                    # self.channel_list[channel_id]['programme_list'][start_time]['title']
+                    # self.channel_list[channel_id]['programme_list'][start_time]['desc']
+                    self.listWidgets[key].addItem(str(item))
+
+
+            # Then create the tab in the DockWidget
+            for key in self.listWidgets.keys():
+                # Tabs = channel_ids
+                self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
+
+            self.dock.setWidget(self.playlists)
+            
+            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.dock)
+
+            # Start it undetached
+            self.dock.setFloating(False)
+
+
+def main():
+    #print("DEBUG: M3U download")
+    #m3u_data = m3u_prep(userName, passWord)
+    #xml_prep(userName, passWord)
+
+    #print("DEBUG: Parsing M3U data")
+    #m3uparser = M3U_Parser()
+    #m3uparser.m3u_chunker(m3u_data)
+
+    app = QtWidgets.QApplication(sys.argv)
+    player = EPG_Parser()
+
+    player.show()
+    player.resize(1200, 600)
+    player.epg_channel_chunker()
+    player.epg_programme_chunker()
+    player.create_playlist_ui()
+
+    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
