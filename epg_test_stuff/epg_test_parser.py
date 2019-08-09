@@ -141,11 +141,17 @@ class EPG_Parser(QtWidgets.QMainWindow):
             for key in self.channel_list.keys():
                 # self.channel_list[channel_id]['programme_list'][start_time]['title']
                 # self.channel_list[key] = channel_id
-                self.listWidgets[key] = QtWidgets.QListWidget()
+                #self.listWidgets[key] = QtWidgets.QListWidget()
+                self.listWidgets[key] = QtWidgets.QTableWidget(25, 3)
+                row = 0
                 for item in self.channel_list[key]['programme_list'].items():
                     # self.channel_list[channel_id]['programme_list'][start_time]['title']
                     # self.channel_list[channel_id]['programme_list'][start_time]['desc']
-                    self.listWidgets[key].addItem(str(item))
+                    self.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[0])))
+                    self.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
+                    self.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                    # self.listWidgets[key].addItem(str(item))
+                    row += 1
 
 
             # Then create the tab in the DockWidget
