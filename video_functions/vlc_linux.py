@@ -19,7 +19,7 @@ class Player(PlayerNG):
     def __init__(self, master=None):
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
-        self.appInfo = "Rosetta v0.3.0"     
+        self.appInfo = "Rosetta v0.3.1"     
         self.setWindowTitle(self.appInfo)
         self.m3uUri = None
         self.m3udata = None
@@ -257,7 +257,7 @@ class Player(PlayerNG):
         else:
             self.m3uUri = m3u_uri
             # Progress bar to let folks know it hasn't locked up.
-            self.m3uProgress.setWindowTitle("Processing M3U data, please wait!")
+            #self.m3uProgress.setWindowTitle("Processing M3U data, please wait!")
             
             self.m3udata = m3u_prep(m3u_uri)
 
