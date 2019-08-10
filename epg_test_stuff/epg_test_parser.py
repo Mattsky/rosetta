@@ -65,20 +65,20 @@ class EPG_Parser(QtWidgets.QMainWindow):
             #title
             #desc
             #programme
-            print(p)
-            # <Element 'programme' at 0x7f554c6b8688>
-            print(p.attrib)
-            # {'start': '20190729210000 -0400', 'stop': '20190729220000 -0400', 'channel': 'TeenNick US'}
-            print(p.get('start').strip('-0400'))
-            # 20190728220000
-            print(p.get('stop').strip('-0400'))
-            # 20190729220000
-            print(p.find('.//title').text)
-            # Teen Wolf
-            print(p.find('.//desc').text)
-            # A young outsider wanders into the woods in search of dead body and encounters a beast. After fighting for his life and escaping a deep bite, Scott's wound changes his life forever(n)
-            print(p.get('channel'))
-            # TeenNick US
+            #print(p)
+            ## <Element 'programme' at 0x7f554c6b8688>
+            #print(p.attrib)
+            ## {'start': '20190729210000 -0400', 'stop': '20190729220000 -0400', 'channel': 'TeenNick US'}
+            #print(p.get('start').strip('-0400'))
+            ## 20190728220000
+            #print(p.get('stop').strip('-0400'))
+            ## 20190729220000
+            #print(p.find('.//title').text)
+            ## Teen Wolf
+            #print(p.find('.//desc').text)
+            ## A young outsider wanders into the woods in search of dead body and encounters a beast. After fighting for his life and escaping a deep bite, Scott's wound changes his life forever(n)
+            #print(p.get('channel'))
+            ## TeenNick US
             channel_id = p.get('channel')
             
 
@@ -87,7 +87,7 @@ class EPG_Parser(QtWidgets.QMainWindow):
                 #self.programme_dict[channel_id] = channel_id
 
             start_time = int(p.get('start').strip('-0400').strip(' '))
-            print(type(start_time))
+            #print(type(start_time))
 
             if channel_id not in self.channel_list:
                 self.channel_list[channel_id] = channel_id
@@ -135,23 +135,33 @@ class EPG_Parser(QtWidgets.QMainWindow):
 
         # Progress indentation ends here
 
-        # Create ListWidgets here based on keys from m3u data
-
         if self.channel_list != None :
             for key in self.channel_list.keys():
                 # self.channel_list[channel_id]['programme_list'][start_time]['title']
                 # self.channel_list[key] = channel_id
                 #self.listWidgets[key] = QtWidgets.QListWidget()
-                self.listWidgets[key] = QtWidgets.QTableWidget(25, 3)
-                row = 0
+                #print(self.channel_list[key])
+                # Build counter to figure out number of rows to create
+                count = 0
                 for item in self.channel_list[key]['programme_list'].items():
-                    # self.channel_list[channel_id]['programme_list'][start_time]['title']
-                    # self.channel_list[channel_id]['programme_list'][start_time]['desc']
-                    self.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[0])))
-                    self.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
-                    self.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
-                    # self.listWidgets[key].addItem(str(item))
-                    row += 1
+                    #print(item)
+                    count += 1
+                if count > 0:
+                    self.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
+                print(count)
+                
+                
+                # Only generate the page if actual data was found - count will be greater than zero
+                if count > 0:
+                    row = 0
+                    for item in self.channel_list[key]['programme_list'].items():
+                        # self.channel_list[channel_id]['programme_list'][start_time]['title']
+                        # self.channel_list[channel_id]['programme_list'][start_time]['desc']
+                        self.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(str(item[0])))
+                        self.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
+                        self.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                        # self.listWidgets[key].addItem(str(item))
+                        row += 1
 
 
             # Then create the tab in the DockWidget
