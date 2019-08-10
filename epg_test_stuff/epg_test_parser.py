@@ -123,6 +123,8 @@ class EPG_Parser(QtWidgets.QMainWindow):
 
         self.listWidgets = {}
 
+        self.categories = {'test1' : {}, 'test2' : {}, 'test3' : {}}
+
         if self.dock != None:
             self.dock.deleteLater()
         
@@ -132,6 +134,8 @@ class EPG_Parser(QtWidgets.QMainWindow):
         # Disable close button (X)
         self.dock.setFeatures(QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
         self.playlists = QtWidgets.QTabWidget(self.dock)
+        self.categorytabs = QtWidgets.QTabWidget(None)
+        #self.categorytabs = QtWidgets.QTabBar(None)
 
         # Progress indentation ends here
 
@@ -163,11 +167,28 @@ class EPG_Parser(QtWidgets.QMainWindow):
                         # self.listWidgets[key].addItem(str(item))
                         row += 1
 
-
+            
+            ### OLD CODE THAT WORKS FOR CHANNEL GEN
             # Then create the tab in the DockWidget
-            for key in self.listWidgets.keys():
+            #for key in self.listWidgets.keys():
                 # Tabs = channel_ids
-                self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
+                #self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
+
+            ## NEW CODE THAT USES CATEGORIES MASTER TABS
+            ## This DOES work, but we can't share widgets between widgets -
+            ## more logic needed to create category tabs, then filter
+            ## and add tabs to the right category
+            for tab in self.categories.keys():
+                print(tab)
+                print(self.categories[tab])
+                # Master tabs = categories
+                self.categories[tab] = QtWidgets.QTabWidget(self.dock)
+                print(self.categories[tab])
+                self.playlists.addTab(self.categories[tab], "{0}".format(tab))
+                for subtab in self.listWidgets.keys():
+                    #print(subtab)
+                    self.categories[tab].addTab(self.listWidgets[subtab], "{0}".format(subtab))
+                    
 
             self.dock.setWidget(self.playlists)
             
