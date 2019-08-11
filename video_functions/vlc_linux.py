@@ -2,7 +2,7 @@ import platform
 import os
 import sys
 from whichcraft import which
-from file_functions.parsers import M3U_Parser
+from file_functions.parsers import M3U_Parser, EPG_Parser
 from net_functions.net_basics import m3u_prep, xml_prep
 from PySide2 import QtWidgets, QtGui, QtCore
 import vlc
@@ -24,7 +24,10 @@ class Player(PlayerNG):
         self.m3uUri = None
         self.m3udata = None
         self.m3uParser = M3U_Parser()
+        # Channel / Playlist dock
         self.dock = None
+        # EPG dock
+        self.epgdock = None
 
         # Create a basic vlc instance
         self.instance = vlc.Instance()
@@ -163,6 +166,21 @@ class Player(PlayerNG):
             # Is this interfering with the video player maximise on doubleclick?
             self.playlists.currentWidget().itemDoubleClicked.connect(self.set_video_stream)
 
+    def create_epg_ui(self):
+
+        if not self.m3uParser.channel_list:
+            print("CHANNEL DATA DOES NOT EXIST YET!")
+            return
+
+        self.epgListWidgets = {}
+        if self.epgdock != None:
+            self.epgdock.deleteLater()
+
+        self.epgdock = QtWidgets.QDockWidget("Categories", self)
+
+        self.epgplaylists = QtWidgets.QTabWidget(self.dock)
+
+
     def create_ui(self):
         """Set up the user interface, signals & slots
         """
@@ -227,10 +245,13 @@ class Player(PlayerNG):
         self.view_menu = self.menu_bar.addMenu("View")
 
         self.playlist_view_action = QtWidgets.QAction("View Playlist", self)
+        self.epg_view_action = QtWidgets.QAction("View EPG", self)
 
         self.view_menu.addAction(self.playlist_view_action)
+        self.view_menu.addAction(self.epg_view_action)
 
         self.playlist_view_action.triggered.connect(self.view_playlist)
+        self.epg_view_action.triggered.connect(self.view_epg)
 
         self.timer = QtCore.QTimer(self)
         self.timer.setInterval(100)
@@ -294,6 +315,82 @@ class Player(PlayerNG):
             else:
                 self.dock.hide()
                 self.playlist_view_action.setChecked(False)
+
+    def view_epg(self):
+
+        if self.dock :
+        # If channel list exists, then create the EPG panel data
+            epg_parser = EPG_Parser()
+            # Debug - provide the channel info
+            epg_parser.m3u_chunker()
+            epg_parser.epg_channel_chunker()
+            epg_parser.epg_programme_chunker()
+            #epg_parser.create_playlist_ui()
+
+            # Then create the panel
+            for key in epg_parser.channel_list.keys():
+                # Build counter to figure out number of rows to create
+                count = 0
+                for item in epg_parser.channel_list[key]['programme_list'].items():
+                    #print(item)
+                    count += 1
+                if count > 0:
+                    epg_parser.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
+                    epg_parser.listWidgets[key].setHorizontalHeaderLabels(["Date / Time", "Title", "Description"])
+                #print(count)
+                
+                
+                # Only generate the page if actual data was found - count will be greater than zero
+                if count > 0:
+                    row = 0
+                    for item in epg_parser.channel_list[key]['programme_list'].items():
+                        # self.channel_list[channel_id]['programme_list'][start_time]['title']
+                        # self.channel_list[channel_id]['programme_list'][start_time]['desc']
+                        # Extract timestamp, e.g. 20190727230000
+                        timestamp = str(item[0])
+                        epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
+                        epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
+                        epg_parser.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                        # self.listWidgets[key].addItem(str(item))
+                        row += 1
+                    # Resize tables to match content size
+                    epg_parser.listWidgets[key].resizeColumnsToContents()
+                    # Make it all read only
+                    epg_parser.listWidgets[key].setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+                
+
+            
+            ### OLD CODE THAT WORKS FOR CHANNEL GEN
+            # Then create the tab in the DockWidget
+            #for key in self.listWidgets.keys():
+                # Tabs = channel_ids
+                #self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
+
+            ## NEW CODE THAT USES CATEGORIES MASTER TABS
+            for tab in epg_parser.category_list.keys():
+                # TAB will equal the cat - e.g. KIDS, CANADA, INDIAN
+                epg_parser.categories[tab] = QtWidgets.QTabWidget(self.dock)
+                epg_parser.playlists.addTab(epg_parser.categories[tab], "{0}".format(tab))
+                for subtab in epg_parser.listWidgets.keys():
+                    # subtab is the channel ID, e.g. spike.ca, space.ca, tlc.ca
+                    if epg_parser.channel_list[subtab]['channel_display_name'] in epg_parser.category_list[tab]: 
+                        epg_parser.categories[tab].addTab(epg_parser.listWidgets[subtab], "{0}".format(subtab))
+                    
+            # DEBUG
+            self.epgdock = QtWidgets.QDockWidget("Categories", self)
+
+            # NOT DEBUG
+            self.epgdock.setWidget(epg_parser.playlists)
+            
+            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.epgdock)
+
+            # Start it undetached
+            self.epgdock.setFloating(False)
+
+        # else create a dialogue box saying EPG can't be created before channel data
+        else:
+            print("No channel data! Skipping EPG.")
+            return
 
 
     def set_volume(self, volume):
