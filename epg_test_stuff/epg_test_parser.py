@@ -9,6 +9,7 @@ class EPG_Parser(QtWidgets.QMainWindow):
     """Class to hold EPG XML info in memory."""
 
     def __init__(self, master=None):
+        self.category_list = {}
         self.channel_list = {}
         self.programme_dict = {}
         QtWidgets.QMainWindow.__init__(self, master)
@@ -16,11 +17,43 @@ class EPG_Parser(QtWidgets.QMainWindow):
         self.root = self.tree.getroot()
         self.dock = None
 
+    # NOT REQUIRED - here for debug and testing
+    def m3u_chunker(self):
+        
+        m3u_file = open(os.path.expanduser('~/Documents/iptv.m3u'), 'r')
+        m3udata = m3u_file.read()
+        m3u_file.close()
+        
+
+        # Get rid of #EXTM3U line in returned data
+        formatted_m3u = m3udata.splitlines()[1:]
+
+        for index in range(0, len(formatted_m3u)):
+            if "#EXTINF" in formatted_m3u[index]:
+                line = formatted_m3u[index]
+                
+                uri_line = formatted_m3u[index+1]
+                #print(uri_line)
+                # Extract group title from returned result
+                group_title = re.search('group-title="(.+?)"', line).group(1)
+                # Get the channel name as well
+                channel_name = re.search('tvg-name="(.+?)"', line).group(1)
+                #print(group_title)
+                
+                if group_title not in self.category_list:
+                    self.category_list[group_title] = {}
+                self.category_list[group_title][channel_name] = uri_line
+
+        #for key in self.channel_list.keys():
+            #print(key)
+
+        #print(self.category_list['CANADA'])
+
     def epg_channel_chunker(self):
         #tree = ET.parse(xmldata)
-        print(self.root)
+        #print(self.root)
         for p in self.root.findall('.//channel'):
-            print(p)
+            #print(p)
             #for elem in p.iter():
                 #print(elem.tag)
             #print(p.tag)
@@ -32,15 +65,14 @@ class EPG_Parser(QtWidgets.QMainWindow):
             # display-name is unique - use for Channel list
             # channel id is common to both channels and programmes (can find 'cartoonnetwork.us' in both, use for creating datasets)
             channel_display_name = p.find('display-name').text
-            print("%s" % (channel_display_name))
+            #print("%s" % (channel_display_name))
             channel_id = p.get('id')
-            print(p.get('id'))
-            #for q in p.findall('.//icon'):
-                #print(q.get('src'))
-            try: 
-                print(p.find('.//icon').get('src'))
-            except:
-                pass
+
+            # THIS WORKS
+            #try: 
+            #    print(p.find('.//icon').get('src'))
+            #except:
+            #    pass
             
             if channel_display_name not in self.channel_list:
                 # Formatted as:
@@ -52,6 +84,8 @@ class EPG_Parser(QtWidgets.QMainWindow):
                     self.channel_list[channel_id]['logo'] = p.find('.//icon').get('src')
                 except:
                     self.channel_list[channel_id]['logo'] = "None"
+
+            #print(self.channel_list)
 
     def epg_programme_chunker(self):
 
@@ -152,7 +186,7 @@ class EPG_Parser(QtWidgets.QMainWindow):
                     count += 1
                 if count > 0:
                     self.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
-                print(count)
+                #print(count)
                 
                 
                 # Only generate the page if actual data was found - count will be greater than zero
@@ -178,16 +212,26 @@ class EPG_Parser(QtWidgets.QMainWindow):
             ## This DOES work, but we can't share widgets between widgets -
             ## more logic needed to create category tabs, then filter
             ## and add tabs to the right category
-            for tab in self.categories.keys():
-                print(tab)
-                print(self.categories[tab])
+            #for tab in self.categories.keys():
+            for tab in self.category_list.keys():
+                # TAB will equal the cat - e.g. KIDS, CANADA, INDIAN
+                #print(tab)
+                #print(self.categories[tab])
+                #print(self.category_list[tab])
                 # Master tabs = categories
                 self.categories[tab] = QtWidgets.QTabWidget(self.dock)
-                print(self.categories[tab])
+                #print(self.categories[tab])
                 self.playlists.addTab(self.categories[tab], "{0}".format(tab))
                 for subtab in self.listWidgets.keys():
+                    # subtab is the channel ID, e.g. spike.ca, space.ca, tlc.ca
                     #print(subtab)
-                    self.categories[tab].addTab(self.listWidgets[subtab], "{0}".format(subtab))
+
+                    # if spike.ca in 
+                    if self.channel_list[subtab]['channel_display_name'] in self.category_list[tab]: 
+                    #if subtab in self.channel_list.keys():
+                        #print("subtab: {0}".format(subtab))
+                        self.categories[tab].addTab(self.listWidgets[subtab], "{0}".format(subtab))
+                #print(self.category_list[tab])
                     
 
             self.dock.setWidget(self.playlists)
@@ -196,6 +240,12 @@ class EPG_Parser(QtWidgets.QMainWindow):
 
             # Start it undetached
             self.dock.setFloating(False)
+            # print(tab)
+            # 'CANADA'
+            # print(self.category_list['CANADA'])
+            # {'CA: A & E HD': 'http://jarvishosting.ddns.net:826/MattN/okBoXgkJp4/36885', .....
+            # print(self.channel_list['cartoonnetwork.us'])
+            # {'channel_display_name': 'CARTOON NETWORK Low BW', 'programme_list': OrderedDict([(20190727223000, {'title': 'Family Guy', 'desc': "From Grimm ......
 
 
 def main():
@@ -212,6 +262,7 @@ def main():
 
     player.show()
     player.resize(1200, 600)
+    player.m3u_chunker()
     player.epg_channel_chunker()
     player.epg_programme_chunker()
     player.create_playlist_ui()
