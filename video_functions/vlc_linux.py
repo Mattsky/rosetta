@@ -19,11 +19,13 @@ class Player(PlayerNG):
     def __init__(self, master=None):
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
-        self.appInfo = "Rosetta v0.3.1"     
+        self.appInfo = "Rosetta v0.4.0"     
         self.setWindowTitle(self.appInfo)
+        print(self)
         self.m3uUri = None
         self.m3udata = None
         self.m3uParser = M3U_Parser()
+        
         # Channel / Playlist dock
         self.dock = None
         # EPG dock
@@ -102,6 +104,25 @@ class Player(PlayerNG):
                 self.videoframe.showNormal()
                 self.setWindowState(QtGui.Qt.WindowNoState)
 
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            print("Left click!")
+            print(self)
+            if self.epgdock:
+                print("Raise logic!")
+                self.setFocus()
+                self.raise_()
+                self.show()
+                self.activateWindow()
+
+    def onEPGTabChange(self, i):
+        """Code to pick up changes in EPG tab (category tab)"""
+        print("EPG TAB IS NOW: {0}".format(i))
+
+    def onEPGSubTabChange(self, i):
+        """Code to pick up changes in EPG subtab (channel tab)"""
+        print("EPG SUBTAB IS NOW: {0}".format(i))
+
     def onTabChange(self, i):
         ##print("TAB IS NOW: {0}".format(i))
         self.playlists.setCurrentIndex(i)
@@ -126,11 +147,13 @@ class Player(PlayerNG):
         
         # Create DockWidget with Tabs for categories
         self.dock = QtWidgets.QDockWidget("Categories", self)
+        
         self.dock.setAllowedAreas(QtCore.Qt.RightDockWidgetArea)
         # Disable close button (X)
         self.dock.setFeatures(QtWidgets.QDockWidget.DockWidgetFloatable | QtWidgets.QDockWidget.DockWidgetMovable)
         self.m3udict = m3udict
         self.playlists = QtWidgets.QTabWidget(self.dock)
+        
 
         # Progress indentation ends here
 
@@ -176,9 +199,40 @@ class Player(PlayerNG):
         if self.epgdock != None:
             self.epgdock.deleteLater()
 
-        self.epgdock = QtWidgets.QDockWidget("Categories", self)
+        #self.epgdock = QtWidgets.QFrame()
 
-        self.epgplaylists = QtWidgets.QTabWidget(self.dock)
+        self.epgplaylists = QtWidgets.QTabWidget(self.epgdock)
+
+        #self.epgdock.setFloating(True)
+
+        # DEBUG
+        self.epgdock = QtWidgets.QDockWidget("EPG Data", self)
+        self.epgdock.resize(1000, 600)
+
+        # NOT DEBUG
+        self.epgdock.setWidget(self.epg_parser.playlists)
+        
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.epgdock)
+
+        # Start it undetached
+        self.epgdock.setFloating(True)
+
+        ### Set up connections
+        # Pick up tab change in playlists widget
+        # THIS WORKS
+        self.epg_parser.playlists.currentChanged.connect(self.onEPGTabChange)
+
+        # Set up subtab detection
+        self.epg_parser.playlists.currentWidget.currentChanged.connect(self.onEPGSubTabChange)
+        
+
+        #self.playlist_view_action.setCheckable(True)
+        #self.playlist_view_action.setChecked(True)
+        
+        # Is this interfering with the video player maximise on doubleclick?
+        #self.playlists.currentWidget().itemDoubleClicked.connect(self.set_video_stream)
+
+        
 
 
     def create_ui(self):
@@ -320,43 +374,45 @@ class Player(PlayerNG):
 
         if self.dock :
         # If channel list exists, then create the EPG panel data
-            epg_parser = EPG_Parser()
+            self.epg_parser = EPG_Parser()
             # Debug - provide the channel info
-            epg_parser.m3u_chunker()
-            epg_parser.epg_channel_chunker()
-            epg_parser.epg_programme_chunker()
+            self.epg_parser.m3u_chunker()
+            self.epg_parser.epg_channel_chunker()
+            self.epg_parser.epg_programme_chunker()
             #epg_parser.create_playlist_ui()
 
             # Then create the panel
-            for key in epg_parser.channel_list.keys():
+            for key in self.epg_parser.channel_list.keys():
                 # Build counter to figure out number of rows to create
                 count = 0
-                for item in epg_parser.channel_list[key]['programme_list'].items():
+                for item in self.epg_parser.channel_list[key]['programme_list'].items():
                     #print(item)
                     count += 1
                 if count > 0:
-                    epg_parser.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
-                    epg_parser.listWidgets[key].setHorizontalHeaderLabels(["Date / Time", "Title", "Description"])
+                    self.epg_parser.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
+                    self.epg_parser.listWidgets[key].verticalHeader().setVisible(False)
+                    self.epg_parser.listWidgets[key].setHorizontalHeaderLabels(["Date / Time", "Title", "Description"])
                 #print(count)
                 
                 
                 # Only generate the page if actual data was found - count will be greater than zero
                 if count > 0:
                     row = 0
-                    for item in epg_parser.channel_list[key]['programme_list'].items():
+                    for item in self.epg_parser.channel_list[key]['programme_list'].items():
                         # self.channel_list[channel_id]['programme_list'][start_time]['title']
                         # self.channel_list[channel_id]['programme_list'][start_time]['desc']
                         # Extract timestamp, e.g. 20190727230000
                         timestamp = str(item[0])
-                        epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
-                        epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
-                        epg_parser.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                        self.epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
+                        self.epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
+                        self.epg_parser.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                        #self.epg_parser.listWidgets[key].setVerticalHeaderLabels(["Dummy"])
                         # self.listWidgets[key].addItem(str(item))
                         row += 1
                     # Resize tables to match content size
-                    epg_parser.listWidgets[key].resizeColumnsToContents()
+                    self.epg_parser.listWidgets[key].resizeColumnsToContents()
                     # Make it all read only
-                    epg_parser.listWidgets[key].setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+                    self.epg_parser.listWidgets[key].setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
                 
 
             
@@ -367,25 +423,27 @@ class Player(PlayerNG):
                 #self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
 
             ## NEW CODE THAT USES CATEGORIES MASTER TABS
-            for tab in epg_parser.category_list.keys():
+            for tab in self.epg_parser.category_list.keys():
                 # TAB will equal the cat - e.g. KIDS, CANADA, INDIAN
-                epg_parser.categories[tab] = QtWidgets.QTabWidget(self.dock)
-                epg_parser.playlists.addTab(epg_parser.categories[tab], "{0}".format(tab))
-                for subtab in epg_parser.listWidgets.keys():
+                self.epg_parser.categories[tab] = QtWidgets.QTabWidget(self.dock)
+                self.epg_parser.playlists.addTab(self.epg_parser.categories[tab], "{0}".format(tab))
+                for subtab in self.epg_parser.listWidgets.keys():
                     # subtab is the channel ID, e.g. spike.ca, space.ca, tlc.ca
-                    if epg_parser.channel_list[subtab]['channel_display_name'] in epg_parser.category_list[tab]: 
-                        epg_parser.categories[tab].addTab(epg_parser.listWidgets[subtab], "{0}".format(subtab))
+                    if self.epg_parser.channel_list[subtab]['channel_display_name'] in self.epg_parser.category_list[tab]: 
+                        self.epg_parser.categories[tab].addTab(self.epg_parser.listWidgets[subtab], "{0}".format(subtab))
                     
             # DEBUG
-            self.epgdock = QtWidgets.QDockWidget("Categories", self)
+            #self.epgdock = QtWidgets.QDockWidget("EPG Data", self)
 
             # NOT DEBUG
-            self.epgdock.setWidget(epg_parser.playlists)
+            #self.epgdock.setWidget(epg_parser.playlists)
             
-            self.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.epgdock)
+            #self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.epgdock)
 
             # Start it undetached
-            self.epgdock.setFloating(False)
+            #self.epgdock.setFloating(True)
+
+            self.create_epg_ui()
 
         # else create a dialogue box saying EPG can't be created before channel data
         else:
