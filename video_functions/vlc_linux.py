@@ -82,6 +82,19 @@ class Player(PlayerNG):
         self.setWindowTitle("{0} - {1}".format(self.appInfo, currentChannel))
         self.mediaplayer.play()
 
+    #def epg_data_was_doubleclicked(self, row, column):
+    def epg_data_was_doubleclicked(self, item):
+        print("Table was double-clicked!")
+        #print(row)
+        #print(column)
+        print(item)
+        print(item.tableWidget())
+        targetWidget = item.tableWidget()
+        print(targetWidget)
+        print(targetWidget.item(0,3).text())
+        #Where do we get the table name?
+        #print("Channel name is: {0}".format())
+
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
             if self.windowState() == QtGui.Qt.WindowNoState:
@@ -221,9 +234,6 @@ class Player(PlayerNG):
         # Pick up tab change in playlists widget
         # THIS WORKS
         self.epg_parser.playlists.currentChanged.connect(self.onEPGTabChange)
-
-        # Set up subtab detection
-        self.epg_parser.playlists.currentWidget.currentChanged.connect(self.onEPGSubTabChange)
         
 
         #self.playlist_view_action.setCheckable(True)
@@ -389,7 +399,10 @@ class Player(PlayerNG):
                     #print(item)
                     count += 1
                 if count > 0:
-                    self.epg_parser.listWidgets[key] = QtWidgets.QTableWidget(count, 3)
+                    self.epg_parser.listWidgets[key] = QtWidgets.QTableWidget(count, 4)
+                    self.epg_parser.listWidgets[key].setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+                    #self.epg_parser.listWidgets[key].cellDoubleClicked.connect(self.epg_data_was_doubleclicked)
+                    self.epg_parser.listWidgets[key].itemDoubleClicked.connect(self.epg_data_was_doubleclicked)
                     self.epg_parser.listWidgets[key].verticalHeader().setVisible(False)
                     self.epg_parser.listWidgets[key].setHorizontalHeaderLabels(["Date / Time", "Title", "Description"])
                 #print(count)
@@ -403,9 +416,15 @@ class Player(PlayerNG):
                         # self.channel_list[channel_id]['programme_list'][start_time]['desc']
                         # Extract timestamp, e.g. 20190727230000
                         timestamp = str(item[0])
+                        print(str(key))
                         self.epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
                         self.epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
                         self.epg_parser.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
+                        # This one has the channel name because I don't have a smarter way to figure it out right now
+                        self.epg_parser.listWidgets[key].setItem(row, 3, QtWidgets.QTableWidgetItem(str(key)))
+                        self.epg_parser.listWidgets[key].setColumnHidden(3, True)
+                        
+                        
                         #self.epg_parser.listWidgets[key].setVerticalHeaderLabels(["Dummy"])
                         # self.listWidgets[key].addItem(str(item))
                         row += 1
