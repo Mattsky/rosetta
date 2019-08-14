@@ -21,7 +21,7 @@ class Player(PlayerNG):
         QtWidgets.QMainWindow.__init__(self, master)
         self.appInfo = "Rosetta v0.4.0"     
         self.setWindowTitle(self.appInfo)
-        print(self)
+        #print(self)
         self.m3uUri = None
         self.m3udata = None
         self.m3uParser = M3U_Parser()
@@ -54,6 +54,49 @@ class Player(PlayerNG):
             warningBox.exec()
             sys.exit(1)
 
+    def epg_set_video_stream(self, selected_item):
+        ## DEBUG
+        ## Get name of tab based on tab index
+        #print(self.playlists.currentIndex())
+        #print(self.playlists.tabText(self.playlists.currentIndex()))
+        #print(self.playlists.currentWidget())
+        ## The text from the widget window that got chosen
+        #print(selected_item.text())
+
+        ## Set vars for lookup ops
+        #currentCategory = self.playlists.tabText(self.playlists.currentIndex())
+        currentChannel = selected_item
+        # Now we can do a k/v check and pull the URI to set!
+        # Spits out the stream URI from the m3u dict
+        #print(self.m3udict[currentCategory][currentChannel])
+
+        # Find the MRL
+        #for key in self.m3udict:
+            #print(self.m3udict[key])
+            #if currentChannel in self.m3udict[key]:
+                #print("FOUND")
+                #return
+        #print(self.epg_parser.channel_list[currentChannel]['channel_display_name'])
+        chan_search_name = self.epg_parser.channel_list[currentChannel]['channel_display_name']
+        print(chan_search_name)
+
+        for key in self.m3uParser.channel_list:
+            print(key)
+            if chan_search_name in self.m3uParser.channel_list[key]:
+                #print(key)
+                print(self.m3uParser.channel_list[key][chan_search_name])
+                videoStreamUri = self.m3uParser.channel_list[key][chan_search_name]
+   
+                # Set the MRL
+                self.media = self.mediaplayer.set_mrl(videoStreamUri)
+                # Set the Player instance's media - the MRL
+                self.mediaplayer.set_media(self.media)
+                # Play the media in the instance window, otherwise we get a popout
+                self.mediaplayer.set_xwindow(int(self.videoframe.winId()))
+                # Update the main window title
+                self.setWindowTitle("{0} - {1}".format(self.appInfo, currentChannel))
+                self.mediaplayer.play()
+
     def set_video_stream(self, selected_item):
         ## DEBUG
         ## Get name of tab based on tab index
@@ -85,15 +128,15 @@ class Player(PlayerNG):
     #def epg_data_was_doubleclicked(self, row, column):
     def epg_data_was_doubleclicked(self, item):
         print("Table was double-clicked!")
-        #print(row)
-        #print(column)
-        print(item)
-        print(item.tableWidget())
+        # CLEAN THIS UP
+        #print(item)
+        #print(item.tableWidget())
         targetWidget = item.tableWidget()
-        print(targetWidget)
-        print(targetWidget.item(0,3).text())
-        #Where do we get the table name?
-        #print("Channel name is: {0}".format())
+        #print(targetWidget)
+        #print(targetWidget.item(0,3).text())
+        channel_id = targetWidget.item(0,3).text()
+        #print(channel_id)
+        self.epg_set_video_stream(channel_id)
 
     def mouseDoubleClickEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -416,7 +459,7 @@ class Player(PlayerNG):
                         # self.channel_list[channel_id]['programme_list'][start_time]['desc']
                         # Extract timestamp, e.g. 20190727230000
                         timestamp = str(item[0])
-                        print(str(key))
+                        #print(str(key))
                         self.epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
                         self.epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
                         self.epg_parser.listWidgets[key].setItem(row, 2, QtWidgets.QTableWidgetItem(str(item[1]['desc'])))
