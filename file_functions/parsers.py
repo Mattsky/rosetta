@@ -36,15 +36,19 @@ class M3U_Parser():
 class EPG_Parser():
     """Class to hold EPG XML info in memory."""
 
-    def __init__(self, master=None):
-        self.category_list = {}
+    def __init__(self, chandata, master=None):
+        self.category_list = chandata
+        #self.category_list = {}
+        # This needs to be passed in from the outside
+        #self.channel_list = chandata
         self.channel_list = {}
         self.programme_dict = {}
         #QtWidgets.QMainWindow.__init__(self, master)
         self.tree = ET.parse('/home/matt/Documents/xmltv.xml')
         self.root = self.tree.getroot()
         self.listWidgets = {}
-        self.categories = {'test1' : {}, 'test2' : {}, 'test3' : {}}
+        #self.categories = {'test1' : {}, 'test2' : {}, 'test3' : {}}
+        self.categories = {}
         #self.playlists = QtWidgets.QTabWidget(self.dock)
         self.playlists = QtWidgets.QTabWidget()
         self.categorytabs = QtWidgets.QTabBar(self.playlists)
@@ -52,36 +56,37 @@ class EPG_Parser():
     # NOT REQUIRED - here for debug and testing
     def m3u_chunker(self):
         
-        m3u_file = open(os.path.expanduser('~/Documents/iptv.m3u'), 'r')
-        m3udata = m3u_file.read()
-        m3u_file.close()
+        #m3u_file = open(os.path.expanduser('~/Documents/iptv.m3u'), 'r')
+        #m3udata = m3u_file.read()
+        #m3u_file.close()
         
 
         # Get rid of #EXTM3U line in returned data
-        formatted_m3u = m3udata.splitlines()[1:]
+        #formatted_m3u = m3udata.splitlines()[1:]
 
-        for index in range(0, len(formatted_m3u)):
-            if "#EXTINF" in formatted_m3u[index]:
-                line = formatted_m3u[index]
+        #for index in range(0, len(formatted_m3u)):
+            #if "#EXTINF" in formatted_m3u[index]:
+                #line = formatted_m3u[index]
                 
-                uri_line = formatted_m3u[index+1]
+                #uri_line = formatted_m3u[index+1]
                 #print(uri_line)
                 # Extract group title from returned result
-                group_title = re.search('group-title="(.+?)"', line).group(1)
+                #group_title = re.search('group-title="(.+?)"', line).group(1)
                 # Get the channel name as well
-                channel_name = re.search('tvg-name="(.+?)"', line).group(1)
+                #channel_name = re.search('tvg-name="(.+?)"', line).group(1)
                 #print(group_title)
                 
-                if group_title not in self.category_list:
-                    self.category_list[group_title] = {}
-                self.category_list[group_title][channel_name] = uri_line
+                #if group_title not in self.category_list:
+                    #self.category_list[group_title] = {}
+                #self.category_list[group_title][channel_name] = uri_line
 
         #for key in self.channel_list.keys():
             #print(key)
 
-        #print(self.category_list['CANADA'])
+        print(self.channel_list['CANADA'])
 
     def epg_channel_chunker(self):
+        #print(self.channel_list)
         #tree = ET.parse(xmldata)
         #print(self.root)
         for p in self.root.findall('.//channel'):

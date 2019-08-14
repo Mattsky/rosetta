@@ -427,9 +427,9 @@ class Player(PlayerNG):
 
         if self.dock :
         # If channel list exists, then create the EPG panel data
-            self.epg_parser = EPG_Parser()
+            self.epg_parser = EPG_Parser(self.m3uParser.channel_list)
             # Debug - provide the channel info
-            self.epg_parser.m3u_chunker()
+            #self.epg_parser.m3u_chunker()
             self.epg_parser.epg_channel_chunker()
             self.epg_parser.epg_programme_chunker()
             #epg_parser.create_playlist_ui()
