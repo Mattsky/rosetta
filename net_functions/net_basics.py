@@ -17,16 +17,17 @@ def m3u_prep(m3u_uri):
     m3u_file.close()
     return(r.text)
 
-def xml_prep(epg_uri):
+def xml_prep(xml_uri):
     """Download xml and write to file."""
     # NOT FUNCTIONAL YET. I mean, it'll work, but we're not using it. Yet.
-    r = requests.get('{0}'.format(epg_uri[0]))
+    r = requests.get('{0}'.format(xml_uri[0]))
     print(r.status_code)
     print(r.headers)
     print(r.encoding)
     #print(r.text)
 
-    #file = open(os.getcwd() + "/xmltv.xml", "w+")
-    #file.write(r.text)
-    #file.close()
-    return(r.text)
+    filepath = os.path.expanduser('~/Documents/xmltv.xml')
+    xml_file = open(filepath, 'w')
+    xml_file.write(r.text)
+    xml_file.close()
+    return(filepath)

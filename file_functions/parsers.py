@@ -36,7 +36,7 @@ class M3U_Parser():
 class EPG_Parser():
     """Class to hold EPG XML info in memory."""
 
-    def __init__(self, chandata, master=None):
+    def __init__(self, chandata, xmldata, master=None):
         self.category_list = chandata
         #self.category_list = {}
         # This needs to be passed in from the outside
@@ -44,7 +44,8 @@ class EPG_Parser():
         self.channel_list = {}
         self.programme_dict = {}
         #QtWidgets.QMainWindow.__init__(self, master)
-        self.tree = ET.parse('/home/matt/Documents/xmltv.xml')
+        #self.tree = ET.parse('/home/matt/Documents/xmltv.xml')
+        self.tree = ET.parse(xmldata)
         self.root = self.tree.getroot()
         self.listWidgets = {}
         #self.categories = {'test1' : {}, 'test2' : {}, 'test3' : {}}

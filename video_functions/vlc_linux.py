@@ -24,6 +24,7 @@ class Player(PlayerNG):
         #print(self)
         self.m3uUri = None
         self.m3udata = None
+        self.xmldata = None
         self.m3uParser = M3U_Parser()
         
         # Channel / Playlist dock
@@ -171,14 +172,6 @@ class Player(PlayerNG):
                 self.show()
                 self.activateWindow()
 
-    def onEPGTabChange(self, i):
-        """Code to pick up changes in EPG tab (category tab)"""
-        print("EPG TAB IS NOW: {0}".format(i))
-
-    def onEPGSubTabChange(self, i):
-        """Code to pick up changes in EPG subtab (channel tab)"""
-        print("EPG SUBTAB IS NOW: {0}".format(i))
-
     def onTabChange(self, i):
         ##print("TAB IS NOW: {0}".format(i))
         self.playlists.setCurrentIndex(i)
@@ -271,21 +264,7 @@ class Player(PlayerNG):
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.epgdock)
 
         # Start it undetached
-        self.epgdock.setFloating(True)
-
-        ### Set up connections
-        # Pick up tab change in playlists widget
-        # THIS WORKS
-        self.epg_parser.playlists.currentChanged.connect(self.onEPGTabChange)
-        
-
-        #self.playlist_view_action.setCheckable(True)
-        #self.playlist_view_action.setChecked(True)
-        
-        # Is this interfering with the video player maximise on doubleclick?
-        #self.playlists.currentWidget().itemDoubleClicked.connect(self.set_video_stream)
-
-        
+        self.epgdock.setFloating(True)      
 
 
     def create_ui(self):
@@ -338,14 +317,26 @@ class Player(PlayerNG):
         # Add actions to file menu
         open_action = QtWidgets.QAction("Open M3U File", self)
         m3u_action = QtWidgets.QAction("Open M3U URI", self)
+        
+        open_epgfile_action = QtWidgets.QAction("Open XML File", self)
+        open_epguri_action = QtWidgets.QAction("Open XML URI", self)
+
         close_action = QtWidgets.QAction("Close App", self)
         self.file_menu.addAction(open_action)
         self.file_menu.addAction(m3u_action)
+
+        self.file_menu.addAction(open_epgfile_action)
+        self.file_menu.addAction(open_epguri_action)
+
         self.file_menu.addAction(close_action)
 
         open_action.triggered.connect(self.open_file)
         # Activate prefs stuff when the method's ready
         m3u_action.triggered.connect(self.get_m3u)
+
+        open_epgfile_action.triggered.connect(self.open_epgfile)
+        open_epguri_action.triggered.connect(self.open_epguri)
+
         close_action.triggered.connect(sys.exit)
 
         # Add action(s) to view menu - TODO
@@ -393,7 +384,47 @@ class Player(PlayerNG):
 
             self.create_playlist_ui(self.m3uParser.channel_list)
 
-     
+    def open_epguri(self):
+        """Open a remote XML file for processing"""
+
+        xml_uri = QtWidgets.QInputDialog.getText(self, "XML Loader","Link to your XML:", QtWidgets.QLineEdit.Normal, "")
+        if not xml_uri:
+            return
+        else:
+            self.xmlUri = xml_uri
+            # Progress bar to let folks know it hasn't locked up.
+            #self.m3uProgress.setWindowTitle("Processing M3U data, please wait!")
+            
+            # Get the URI, save it locally, then return the filename
+            # self.xmldata = filename[0]
+            self.xmldata = xml_prep(xml_uri)   
+                
+            #self.m3uParser.m3u_chunker(self.m3udata)
+
+            #self.create_playlist_ui(self.m3uParser.channel_list)
+
+            self.create_epg()
+
+    def open_epgfile(self):
+        """Open a local XML file for processing"""
+
+        dialog_txt = "Choose XML File"
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, dialog_txt, os.path.expanduser('~'))
+        if not filename:
+            return
+
+        # getOpenFileName returns a tuple, so use only the actual file name
+        #with open(filename[0], 'r') as xmldata_file:
+            #self.xmldata = xmldata_file.read()
+
+        self.xmldata = filename[0]
+            
+        #self.m3uParser.m3u_chunker(self.m3udata)
+
+        #self.create_playlist_ui(self.m3uParser.channel_list)
+
+        self.create_epg()
+
 
     def open_file(self):
         """Open a local M3U file for processing"""
@@ -425,9 +456,13 @@ class Player(PlayerNG):
 
     def view_epg(self):
 
+        print("VIEW EPG!")
+
+    def create_epg(self):
+
         if self.dock :
         # If channel list exists, then create the EPG panel data
-            self.epg_parser = EPG_Parser(self.m3uParser.channel_list)
+            self.epg_parser = EPG_Parser(self.m3uParser.channel_list, self.xmldata)
             # Debug - provide the channel info
             #self.epg_parser.m3u_chunker()
             self.epg_parser.epg_channel_chunker()
