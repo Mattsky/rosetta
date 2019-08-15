@@ -55,7 +55,7 @@ class EPG_Parser():
         self.categorytabs = QtWidgets.QTabBar(self.playlists)
 
     # NOT REQUIRED - here for debug and testing
-    def m3u_chunker(self):
+    #def m3u_chunker(self):
         
         #m3u_file = open(os.path.expanduser('~/Documents/iptv.m3u'), 'r')
         #m3udata = m3u_file.read()
@@ -84,7 +84,7 @@ class EPG_Parser():
         #for key in self.channel_list.keys():
             #print(key)
 
-        print(self.channel_list['CANADA'])
+        #print(self.channel_list['CANADA'])
 
     def epg_channel_chunker(self):
         #print(self.channel_list)

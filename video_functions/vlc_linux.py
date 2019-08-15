@@ -17,6 +17,8 @@ class PlayerNG(QtWidgets.QMainWindow):
 class Player(PlayerNG):
 
     def __init__(self, master=None):
+        # Let's try to set an icon
+        self.setWindowIcon(QtGui.QIcon('MyGui.ico'))
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
         self.appInfo = "Rosetta v0.4.0"     
@@ -161,17 +163,6 @@ class Player(PlayerNG):
                 self.videoframe.showNormal()
                 self.setWindowState(QtGui.Qt.WindowNoState)
 
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            print("Left click!")
-            print(self)
-            if self.epgdock:
-                print("Raise logic!")
-                self.setFocus()
-                self.raise_()
-                self.show()
-                self.activateWindow()
-
     def onTabChange(self, i):
         ##print("TAB IS NOW: {0}".format(i))
         self.playlists.setCurrentIndex(i)
@@ -263,6 +254,8 @@ class Player(PlayerNG):
         
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.epgdock)
 
+        self.playlist_view_action.setCheckable(True)
+        self.playlist_view_action.setChecked(True)
         # Start it undetached
         self.epgdock.setFloating(True)      
 
@@ -358,8 +351,16 @@ class Player(PlayerNG):
     def play(self):
         """Play selected stream"""
 
-        self.mediaplayer.play()
-        self.timer.start()
+        # New code to actually make it play
+        # This only works if a channel was already played.
+        # Do we even want a play button? I'm not so sure.
+        if self.media:
+            self.mediaplayer.set_media(self.media)
+            # Play the media in the instance window, otherwise we get a popout
+            self.mediaplayer.set_xwindow(int(self.videoframe.winId()))
+            self.mediaplayer.play()
+        else:
+            print("No MRL available!")
 
     def stop(self):
         """Stop player
@@ -457,6 +458,14 @@ class Player(PlayerNG):
     def view_epg(self):
 
         print("VIEW EPG!")
+        if self.epgdock:
+
+            if self.epgdock.isHidden():
+                self.epgdock.show()
+                #self.epg_view_action.setChecked(True)
+            else:
+                self.epgdock.hide()
+                #self.epg_view_action.setChecked(False)
 
     def create_epg(self):
 
