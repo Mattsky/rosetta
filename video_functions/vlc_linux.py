@@ -18,7 +18,7 @@ class Player(PlayerNG):
 
     def __init__(self, master=None):
         # Let's try to set an icon
-        self.setWindowIcon(QtGui.QIcon('MyGui.ico'))
+        #self.setWindowIcon(QtGui.QIcon('MyGui.ico'))
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
         self.appInfo = "Rosetta v0.4.0"     
@@ -153,6 +153,9 @@ class Player(PlayerNG):
                 self.menu_bar.hide()
                 self.videoframe.showFullScreen()
                 self.setWindowState(QtGui.Qt.WindowFullScreen)
+                if self.epgdock.isVisible():
+                    self.epg_was_visible = True
+                    self.epgdock.hide()
             else:
                 self.widget.setStyleSheet("background-color:None")
                 self.dock.show()
@@ -162,6 +165,9 @@ class Player(PlayerNG):
                 self.menu_bar.show()
                 self.videoframe.showNormal()
                 self.setWindowState(QtGui.Qt.WindowNoState)
+                if self.epg_was_visible == True:
+                    self.epgdock.show()
+                    self.epg_was_vislble = False
 
     def onTabChange(self, i):
         ##print("TAB IS NOW: {0}".format(i))
@@ -336,13 +342,18 @@ class Player(PlayerNG):
         self.view_menu = self.menu_bar.addMenu("View")
 
         self.playlist_view_action = QtWidgets.QAction("View Playlist", self)
-        self.epg_view_action = QtWidgets.QAction("View EPG", self)
+        self.epg_view_action = QtWidgets.QAction("View EPG (Ctrl+E)", self)
 
         self.view_menu.addAction(self.playlist_view_action)
         self.view_menu.addAction(self.epg_view_action)
 
         self.playlist_view_action.triggered.connect(self.view_playlist)
         self.epg_view_action.triggered.connect(self.view_epg)
+
+        # Set up a shortcut for the epg view stuff
+        viewEPGShortcut = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+e"), self)
+        viewEPGShortcut.activated.connect(self.view_epg)
+
 
         self.timer = QtCore.QTimer(self)
         self.timer.setInterval(100)
@@ -457,7 +468,7 @@ class Player(PlayerNG):
 
     def view_epg(self):
 
-        print("VIEW EPG!")
+        #print("VIEW EPG!")
         if self.epgdock:
 
             if self.epgdock.isHidden():
@@ -502,7 +513,8 @@ class Player(PlayerNG):
                         # self.channel_list[channel_id]['programme_list'][start_time]['title']
                         # self.channel_list[channel_id]['programme_list'][start_time]['desc']
                         # Extract timestamp, e.g. 20190727230000
-                        timestamp = str(item[0])
+                        orig_timestamp = str(item[0])
+                        timestamp = orig_timestamp[6:8] + " " + orig_timestamp[4:6] + " - " + orig_timestamp[8:10] + ":" + orig_timestamp[10:12]    
                         #print(str(key))
                         self.epg_parser.listWidgets[key].setItem(row, 0, QtWidgets.QTableWidgetItem(timestamp))
                         self.epg_parser.listWidgets[key].setItem(row, 1, QtWidgets.QTableWidgetItem(str(item[1]['title'])))
@@ -521,13 +533,6 @@ class Player(PlayerNG):
                     self.epg_parser.listWidgets[key].setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
                 
 
-            
-            ### OLD CODE THAT WORKS FOR CHANNEL GEN
-            # Then create the tab in the DockWidget
-            #for key in self.listWidgets.keys():
-                # Tabs = channel_ids
-                #self.playlists.addTab(self.listWidgets[key], "{0}".format(key))
-
             ## NEW CODE THAT USES CATEGORIES MASTER TABS
             for tab in self.epg_parser.category_list.keys():
                 # TAB will equal the cat - e.g. KIDS, CANADA, INDIAN
@@ -537,17 +542,6 @@ class Player(PlayerNG):
                     # subtab is the channel ID, e.g. spike.ca, space.ca, tlc.ca
                     if self.epg_parser.channel_list[subtab]['channel_display_name'] in self.epg_parser.category_list[tab]: 
                         self.epg_parser.categories[tab].addTab(self.epg_parser.listWidgets[subtab], "{0}".format(subtab))
-                    
-            # DEBUG
-            #self.epgdock = QtWidgets.QDockWidget("EPG Data", self)
-
-            # NOT DEBUG
-            #self.epgdock.setWidget(epg_parser.playlists)
-            
-            #self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, self.epgdock)
-
-            # Start it undetached
-            #self.epgdock.setFloating(True)
 
             self.create_epg_ui()
 
