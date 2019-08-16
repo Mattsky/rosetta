@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='Rosetta',
-      version='0.4.0',
+      version='0.4.2',
       description='Prototype video player thing',
       author='Matt N',
       author_email='matt.northsky@gmail.com',
@@ -14,8 +14,8 @@ setup(name='Rosetta',
               'rosetta = rosetta:main',
           ],
       },
-      python_requires='>=3.*.*',
+      python_requires='>=3.4.*',
       install_requires=[
-          'nose', 'mock', 'requests', 'python-vlc', 'whichcraft', 'PySide2'
+          'nose', 'mock', 'requests', 'python-vlc', 'PySide2'
       ],
      )

@@ -1,7 +1,10 @@
 import platform
 import os
 import sys
-from whichcraft import which
+import platform
+#from whichcraft import which
+from shutil import which
+from pathlib import Path
 from file_functions.parsers import M3U_Parser, EPG_Parser
 from net_functions.net_basics import m3u_prep, xml_prep
 from PySide2 import QtWidgets, QtGui, QtCore
@@ -21,7 +24,7 @@ class Player(PlayerNG):
         #self.setWindowIcon(QtGui.QIcon('MyGui.ico'))
         self.syscheck()
         QtWidgets.QMainWindow.__init__(self, master)
-        self.appInfo = "Rosetta v0.4.0"     
+        self.appInfo = "Rosetta v0.4.2"     
         self.setWindowTitle(self.appInfo)
         #print(self)
         self.m3uUri = None
@@ -49,13 +52,22 @@ class Player(PlayerNG):
     def syscheck(self):
 
         # Check VLC's installed. Kinda need it to do, well, anything.
-        vlc_location = which('vlc')
-        if vlc_location == None:
-            warningBox = QtWidgets.QMessageBox()
-            warningBox.setWindowTitle("CRITICAL: VLC not installed!")
-            warningBox.setText("VLC is required for this to work. Please install it and retry.")
-            warningBox.exec()
-            sys.exit(1)
+        #print(platform.platform(aliased=True))
+        if "Linux" in platform.platform(aliased=True):
+            vlc_location = which('vlc')
+            if vlc_location == None:
+                warningBox = QtWidgets.QMessageBox()
+                warningBox.setWindowTitle("CRITICAL: VLC not installed!")
+                warningBox.setText("VLC is required for this to work. Please install it and retry.")
+                warningBox.exec()
+                sys.exit(1)
+
+        # Check we have a home directory available.
+        #Path.home().joinpath('rosetta')
+        if not Path.home().joinpath('rosetta').exists():
+            # Create directory
+            Path(Path.home().joinpath('rosetta')).mkdir()
+
 
     def epg_set_video_stream(self, selected_item):
         ## DEBUG
