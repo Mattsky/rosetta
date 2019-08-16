@@ -156,6 +156,8 @@ class Player(PlayerNG):
                 if self.epgdock.isVisible():
                     self.epg_was_visible = True
                     self.epgdock.hide()
+                else:
+                    self.epg_was_visible = False
             else:
                 self.widget.setStyleSheet("background-color:None")
                 self.dock.show()
@@ -167,7 +169,7 @@ class Player(PlayerNG):
                 self.setWindowState(QtGui.Qt.WindowNoState)
                 if self.epg_was_visible == True:
                     self.epgdock.show()
-                    self.epg_was_vislble = False
+                    self.epg_was_visible = False
 
     def onTabChange(self, i):
         ##print("TAB IS NOW: {0}".format(i))
