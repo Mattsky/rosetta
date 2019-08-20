@@ -35,7 +35,7 @@ Once installed, just invoke it from the command line:
 rosetta
 ```
 
-You can either load an M3U file from disk, or paste the URI given to you and it'll be imported (and then saved to disk at ~/Documents/iptv.m3u)
+You can either load an M3U file from disk, or paste the URI given to you and it'll be imported (and then saved to disk at ~/rosetta/iptv.m3u)
 
 ### Development
 
